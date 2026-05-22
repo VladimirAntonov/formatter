@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Конвертер картинок</title>
+    <style>
+        body { 
+			font-family: sans-serif; 
+			max-width: 500px; 
+			margin: 50px auto; 
+			text-align: center; 
+			background: #f5f5f7; 
+		}
+        .box { 
+			background: white; 
+			padding: 30px; 
+			border-radius: 12px; 
+			box-shadow: 0 4px 12px rgba(0,0,0,0.1); 
+		}
+        input, select, button { width: 100%; padding: 12px; margin: 10px 0; border-radius: 8px; border: 1px solid #ccc; box-sizing: border-box; }
+        button { 
+			background: #0071e3; 
+			color: white; 
+			border: none; 
+			font-weight: bold; 
+			cursor: pointer; 
+		}
+		button:disabled {
+			background: gray;
+			cursor: not-allowed;
+		}
+        button:hover:not(:disabled) { 
+			background: #0077ed; 
+		}
+    </style>
+</head>
+<body>
+    <div class="box">
+        <h2>Конвертер картинок</h2>
+        <input type="file" id="upload" accept="image/*">
+        
+        <label for="format">Выбрать формат:</label>
+        <select id="format">
+            <option value="image/jpeg">JPEG</option>
+            <option value="image/png">PNG</option>
+            <option value="image/webp">WEBP</option>
+        </select>
+        
+        <button id="convertBtn">Конвертировать</button>
+		<div id="linkContainer"></div>
+    </div>
+
+    <script>
+		const convertBtn = document.getElementById('convertBtn');
+        convertBtn.addEventListener('click', function() {
+		
+            const fileInput = document.getElementById('upload');
+            const format = document.getElementById('format').value;
+            
+            if (fileInput.files.length === 0) {
+                alert('Пожалуйста, выберите файл!');
+                return;
+            } 
+            
+			
+			convertBtn.disabled = true;
+			convertBtn.textContent = 'Конвертация...';
+
+            const file = fileInput.files[0];
+            const reader = new FileReader();
+
+            reader.onload = function(event) {
+                const img = new Image();
+                img.onload = function() {
+                    // Создаем невидимый холст для перерисовки
+                    const canvas = document.createElement('canvas');
+                    canvas.width = img.width;
+                    canvas.height = img.height;
+                    
+                    const ctx = canvas.getContext('2d');
+                    ctx.drawImage(img, 0, 0);
+                    
+                    // Превращаем холст в файл нужного формата и скачиваем
+                    const link = document.createElement('a');
+					const newFileName = file.name.split('.').slice(0, -1).join('.') + '_new';
+					const convertered_name = `${newFileName}.${format.split('/')[1]}`;
+                    link.download = convertered_name;
+					link.textContent = convertered_name;
+                    link.href = canvas.toDataURL(format, 1); // 0.9 - качество для jpeg/webp
+					
+					const linkContainer = document.getElementById('linkContainer');
+					linkContainer.replaceChildren(link);
+					
+					convertBtn.disabled = false;
+					convertBtn.textContent = 'Конвертировать';
+                };
+                img.src = event.target.result;
+            };
+            reader.readAsDataURL(file);
+        });
+    </script>
+</body>
+</html>
